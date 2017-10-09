@@ -52,16 +52,24 @@ bool Neuron::IsRefractory(double t)
 
 bool Neuron::HasSpiked(double t)
 {
-	
+	if (spikes_time_.empty())
+	{
+		return false ;
+	}
+	if(t == spikes_time_.back())
+	{
+		return true ;
+	}
+	return false ;
 }
 
-void Neuron::UpdateState(double t_, double dt_, double I) 
+void Neuron::UpdateState(double t_, double dt_, double I,unsigned int sp_got) 
 {
 	if (IsRefractory(t_)) //neuron refractory-> pot = 0 sinon on applique la formule
 	{
 		potential_ = 0 ;
 	}else{ 
-		potential_ = exp(-dt_/tau_) * potential_ + I * (tau_ / c_) * (1 - exp(-dt_/tau_)); 
+		potential_ = exp(-dt_/tau_) * potential_ + I * (tau_ / c_) * (1 - exp(-dt_/tau_)) + sp_got*threshold_; 
 		if (potential_ >= threshold_)
 		{
 			spikes_time_.push_back(t_ + dt_) ;

@@ -6,14 +6,14 @@
 int main()
 {
 	//double current_t_ (0) ;
-	double t_start_ (0) ;
-	double t_stop_ (0) ;
+	int t_start_ (0) ;
+	int t_stop_ (0) ;
 	//double t_final_ (0);
-	double current_step_(0) ;
+	int current_step_(0) ;
 	double I (0.0) ;
 	double Iext (0.0);
 	double h (0.2); // the interval of time in each step
-	double nb_steps_ (1000) ;
+	int nb_steps_ (1000) ;
 	
 	std::cout << "Enter a value for the current " ;
 	//control
@@ -30,53 +30,46 @@ int main()
 	
 	std::cout << "Enter a time interval "<<std::endl ;
 	//control
-	std::cout << "When does the current start ? (number between 0 and 500) "<<std::endl;
-	int CONTROLVALUE ;
-	do
-	{
-		std::cin >> CONTROLVALUE ;
-		std::cout << endl ;
-		if((std::cin.fail()) or (CONTROLVALUE < 0))
-		{
-			std::cout << "Error : enter a positive integral number" << std::endl ;
-			std::cin.clear() ;
-			std::cin.ignore(INT_MAX, '\n') ;
-		}else{
-			t_start_ = CONTROLVALUE ;
-			CONTROLVALUE = 1 ; 
-		}
-	}while(CONTROLVALUE <= 0) ;
+	std::cout << "When does the current start ? (number between 0 and "<< nb_steps_<<" ) " ;
 	
-	std::cout << "When does the current stops ? (number of steps between starting time and 500) "<<std::endl;
 	do
 	{
-		std::cin >> CONTROLVALUE ;
+		std::cin >> t_start_ ;
 		std::cout << endl ;
-		if(std::cin.fail())
+		if((std::cin.fail()) or (t_start_ < 0) or (t_start_ > nb_steps_))
 		{
-			std::cout << "Error : enter a positive integral number" << std::endl ;
+			std::cout << "Error : enter a positive integral number between 0 and "<< nb_steps_ << std::endl ;
 			std::cin.clear() ;
 			std::cin.ignore(INT_MAX, '\n') ;
-		}else if(CONTROLVALUE > t_start_)
+			t_start_ = 0 ;
+		}
+	}while((t_start_ <= 0) or (t_start_ > nb_steps_)) ;
+	
+	std::cout << "When does the current stops ? (number of steps between starting time and "<<nb_steps_<<" ) "<<std::endl;
+	do
+	{
+		std::cin >> t_stop_ ;
+		std::cout << endl ;
+		if((std::cin.fail()) or (t_stop_ < t_start_) or (t_stop_ > nb_steps_))
 		{
-			t_stop_ = CONTROLVALUE ;
-			CONTROLVALUE = 1 ; 
-			}else{
-				std::cout<<"Your number is invalid"<<std::endl ;
-				std::cin.clear() ;
-				std::cin.ignore(INT_MAX, '\n') ;
-			}
-	}while(CONTROLVALUE <= 0) ;
+			std::cout << "Error : enter a positive integral number between 0 and "<<nb_steps_<<" " << std::endl ;
+			std::cin.clear() ;
+			std::cin.ignore(INT_MAX, '\n') ;
+			t_stop_ = 0 ;
+		}
+	}while((t_stop_ <= 0) or (t_stop_ > nb_steps_)) ;
 	
 	vector <Neuron> Neurons_ ;
 	Neuron mono ;
 	Neurons_.push_back(mono) ;
-	Neuron sono (10.0, 0 ) ;
+	Neuron sono (3.0, 0 ) ;
 	Neurons_.push_back(sono) ;
 	
 	std::ofstream Project_Neuron ;
 	Project_Neuron.open("Potentials.txt") ;
 	Project_Neuron << "Neuron 1" << '\t' << "Neuron 2" << std::endl ;
+	
+	unsigned int spikes_connected_ (0);
 	
 	while ( current_step_<= nb_steps_)
 	{	
@@ -89,11 +82,19 @@ int main()
 		
 		for (size_t i = 0; i < Neurons_.size() ; i++)
 		{
-			Neurons_[i].UpdateState(current_step_*h, h, I) ;
+			if (i > 0)
+			{
+				if(Neurons_[i-1].HasSpiked(current_step_*h + h))
+				{
+					spikes_connected_ += 1 ;
+				} ;
+			} ;
+			Neurons_[i].UpdateState(current_step_*h, h, I, spikes_connected_) ;
 			Project_Neuron << Neurons_[i].GetPotential()<<'\t' << '\t' ;
 		} ;
 		Project_Neuron << std::endl ;
 		current_step_ += 1 ;
+		spikes_connected_ = 0 ;
 	} ; 
 	
 	Project_Neuron.close() ;

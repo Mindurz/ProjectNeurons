@@ -44,7 +44,7 @@ class Neuron
 	bool IsRefractory(double t) ;
 	bool HasSpiked(double t) ;
 	
-	void UpdateState(double t_, double dt_, double I) ;
+	void UpdateState(double t_, double dt_, double I,unsigned int sp_got) ;
 };
 
 #endif
